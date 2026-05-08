@@ -1,0 +1,9 @@
+node_modules/
+phone-app/node_modules/
+phone-app/dist/
+
+data/
+.env
+
+*.log
+.DS_Store
