@@ -35,10 +35,25 @@ function defaultState() {
     mood: "CALM",
     active_index: 0,
     tasks: [
-      { title: "Work on RoverPi", done: false },
-      { title: "Fix DeskBot flicker", done: false },
-      { title: "Test touch controls", done: false }
-    ],
+  {
+    title: "Work on RoverPi",
+    done: false,
+    tag: "code",
+    priority: "high"
+  },
+  {
+    title: "Fix DeskBot flicker",
+    done: false,
+    tag: "review",
+    priority: "med"
+  },
+  {
+    title: "Test touch controls",
+    done: false,
+    tag: "work",
+    priority: "low"
+  }
+],
     notes: "",
     pomodoro: {
       running: false,
@@ -101,8 +116,14 @@ function isLoggedIn(req) {
   return req.session && req.session.loggedIn === true;
 }
 
+function hasPicoKey(req) {
+  return req.headers["x-pico-key"] === process.env.PICO_API_KEY;
+}
+
 function requireLogin(req, res, next) {
   if (isLoggedIn(req)) return next();
+  if (hasPicoKey(req)) return next();
+
   return res.status(401).json({ ok: false, error: "Not logged in" });
 }
 
@@ -179,20 +200,26 @@ app.post("/api/deskbot/toggle", requireLogin, (req, res) => {
 app.post("/api/deskbot/next", requireLogin, (req, res) => {
   if (state.tasks.length > 0) {
     state.active_index = (state.active_index + 1) % state.tasks.length;
+  } else {
+    state.active_index = 0;
   }
 
-  normalizeActiveIndex();
   saveState();
 
   res.json({ ok: true, state });
 });
 
 app.post("/api/deskbot/done", requireLogin, (req, res) => {
-  const task = state.tasks[state.active_index];
+  if (state.tasks.length > 0) {
+    state.tasks.splice(state.active_index, 1);
+  }
 
-  if (task) task.done = true;
+  if (state.active_index >= state.tasks.length) {
+    state.active_index = 0;
+  }
 
   state.mood = "DONE";
+
   saveState();
 
   setTimeout(() => {
@@ -220,7 +247,12 @@ app.post("/api/deskbot/tasks/add", requireLogin, (req, res) => {
     return res.status(400).json({ ok: false, error: "Missing task title" });
   }
 
-  state.tasks.push({ title, done: false });
+  state.tasks.push({
+  title,
+  done: false,
+  tag: req.body?.tag || "work",
+  priority: req.body?.priority || "med"
+});
 
   normalizeActiveIndex();
   saveState();

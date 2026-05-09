@@ -1,9 +1,34 @@
+# Node
 node_modules/
-phone-app/node_modules/
-phone-app/dist/
+server/node_modules/
+server/phone-app/node_modules/
+server/phone-app/dist/
 
-data/
+# Runtime data/secrets
+server/data/
+server/.env
 .env
+cloud_config.h
+**/cloud_config.h
+**/*secret*
+**/*wifi*
+**/*credentials*
 
-*.log
+# Pico/CMake build
+firmware/build/
+**/build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+*.uf2
+*.elf
+*.bin
+*.map
+*.dis
+*.hex
+
+# OS/editor
 .DS_Store
+.vscode/
+*.log
